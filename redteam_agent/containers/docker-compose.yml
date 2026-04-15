@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  redteam-agent:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile
+    container_name: redteam-agent
+    tty: true
+    stdin_open: true
+    network_mode: "none"
+    mem_limit: 2g
+    cpus: 1.0
+    volumes:
+      - ../workspace:/app/workspace
+      - ../state:/app/state
+      - ../reports:/app/reports
+      - ../config.yaml:/app/config.yaml:ro
+    command: ["engage", "--objective", "Lab recon", "--scope", "192.168.56.0/24", "--max-iterations", "2"]

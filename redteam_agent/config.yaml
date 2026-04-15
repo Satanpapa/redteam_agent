@@ -1,0 +1,66 @@
+app:
+  name: redteam-agent
+  log_level: INFO
+  default_workspace: ./workspace
+  checkpoint_path: ./state/checkpoints
+  telemetry_enabled: false
+
+llm:
+  base_url: http://localhost:11434/v1
+  model: qwen2.5-coder:32b
+  embedding_model: nomic-embed-text
+  api_key: ollama
+  temperature: 0.2
+  max_tokens: 2048
+  timeout_seconds: 90
+  retries: 3
+  stream: true
+
+memory:
+  vector_backend: chromadb
+  vector_collection: redteam-knowledge
+  vector_path: ./state/chroma
+  tactical_db_path: ./state/tactical_memory.db
+  retrieval_top_k: 8
+  similarity_threshold: 0.68
+
+world_model:
+  graph_db_path: ./state/world_model.db
+  enable_auto_inference: true
+  decay_half_life_hours: 48
+
+decision_engine:
+  monte_carlo_iterations: 300
+  risk_weight: 0.25
+  reward_weight: 0.35
+  stealth_weight: 0.2
+  cost_weight: 0.2
+  adaptive_learning_rate: 0.15
+  exploration_bias: 0.1
+
+tooling:
+  command_timeout_sec: 180
+  max_parallel_tools: 3
+  metasploit:
+    enabled: true
+    host: 127.0.0.1
+    port: 55553
+    username: msf
+    password: msf
+    ssl: false
+
+docker:
+  image: kalilinux/kali-rolling:latest
+  cpu_quota: 100000
+  mem_limit: 2g
+  pids_limit: 512
+  network_mode: none
+  read_only_rootfs: false
+  snapshots_path: ./state/snapshots
+  volumes:
+    - ./workspace:/workspace:rw
+
+reporting:
+  report_dir: ./reports
+  include_raw_tool_output: true
+  redact_secrets: true
