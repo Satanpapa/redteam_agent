@@ -1,0 +1,65 @@
+app:
+  name: redteam-agent
+  log_level: INFO
+  timezone: UTC
+
+llm:
+  base_url: http://localhost:11434/v1
+  api_key: ollama
+  planning_model: qwen2.5-coder:32b
+  analysis_model: qwen2.5-coder:32b
+  embed_model: nomic-embed-text
+  timeout_seconds: 120
+  max_retries: 4
+  temperature: 0.2
+  max_tokens: 2048
+
+memory:
+  chroma_path: ./data/chroma
+  tactical_sqlite_path: ./data/tactical_memory.db
+  collection_name: redteam_experiences
+  top_k: 8
+
+world_model:
+  sqlite_path: ./data/world_model.db
+  autosave_interval: 3
+
+decision_engine:
+  monte_carlo_iterations: 200
+  exploration_rate: 0.15
+  adaptive_learning_rate: 0.2
+  objective_weights:
+    stealth: 0.25
+    impact: 0.35
+    speed: 0.2
+    confidence: 0.2
+
+docker:
+  image: kalilinux/kali-rolling:latest
+  cpu_quota: 50000
+  mem_limit: 2g
+  pids_limit: 256
+  network_name: redteam_isolated_net
+  mount_base: ./workspace
+  snapshot_dir: ./data/snapshots
+  timeout_seconds: 180
+  read_only_root: false
+
+tools:
+  nmap_default_flags:
+    - -sV
+    - -Pn
+  metasploit_rpc:
+    enabled: true
+    host: 127.0.0.1
+    port: 55553
+    ssl: false
+    user: msf
+    password: msf
+    uri: /api/
+
+campaign:
+  max_cycles: 8
+  halt_on_high_risk: false
+  target_default: 192.168.56.0/24
+  snapshot_before_critical: true
