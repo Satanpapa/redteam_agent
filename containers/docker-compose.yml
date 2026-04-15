@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  redteam-agent:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile
+    container_name: redteam-agent
+    network_mode: bridge
+    volumes:
+      - ../:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["engage", "Enumerate Metasploitable3 attack surface"]
