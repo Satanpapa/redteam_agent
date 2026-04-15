@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  redteam-agent:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile
+    image: redteam-agent:latest
+    container_name: redteam-agent
+    volumes:
+      - ../data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: bridge
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["python3", "-m", "code.cli", "engage", "--target", "192.168.56.101"]
