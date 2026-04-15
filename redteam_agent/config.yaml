@@ -1,0 +1,204 @@
+# Red Team Agent Configuration
+# ================================
+
+llm:
+  # Ollama API endpoint (OpenAI-compatible)
+  base_url: "http://localhost:11434/v1"
+  
+  # Primary model for reasoning and planning
+  model: "qwen2.5-coder:32b"
+  
+  # Embedding model for vector store
+  embedding_model: "nomic-embed-text"
+  
+  # Generation parameters
+  temperature: 0.7
+  max_tokens: 4096
+  top_p: 0.9
+  
+  # Retry configuration
+  retry:
+    max_attempts: 3
+    initial_delay: 1.0
+    max_delay: 10.0
+    exponential_base: 2.0
+
+# World Model Configuration
+world_model:
+  # SQLite database for graph persistence
+  db_path: "./data/world_model.db"
+  
+  # Graph update frequency
+  checkpoint_interval: 5
+  
+  # Maximum graph size before pruning
+  max_nodes: 10000
+  max_edges: 50000
+
+# Memory System Configuration
+memory:
+  # Vector store (ChromaDB)
+  vector_store:
+    persist_directory: "./data/chroma"
+    collection_name: "redteam_memory"
+    embedding_dimensions: 768
+    
+  # Tactical memory (SQLite)
+  tactical:
+    db_path: "./data/tactical_memory.db"
+    max_recent_actions: 100
+    retention_days: 30
+
+# Docker Sandbox Configuration
+sandbox:
+  # Kali Linux image
+  image: "kalilinux/kali-rolling:latest"
+  
+  # Container naming prefix
+  container_prefix: "redteam-sandbox"
+  
+  # Network configuration
+  network:
+    mode: "isolated"  # isolated, bridge, host
+    bridge_name: "redteam-net"
+    
+  # Resource limits
+  resource_limits:
+    cpu_count: 2.0
+    memory_limit: "4g"
+    pids_limit: 100
+    
+  # Volume mounts
+  volumes:
+    - type: bind
+      source: ./data/tools
+      target: /opt/tools
+      read_only: false
+    - type: volume
+      name: redteam-workspace
+      target: /workspace
+      
+  # Snapshot configuration
+  snapshots:
+    enabled: true
+    max_snapshots: 5
+    auto_snapshot_before_dangerous: true
+
+# Tool Layer Configuration
+tools:
+  # Enabled tools
+  enabled:
+    - nmap
+    - nikto
+    - sqlmap
+    - metasploit
+    - gobuster
+    - hydra
+    - john
+    - hashcat
+    
+  # Tool timeouts (seconds)
+  timeouts:
+    default: 300
+    nmap: 600
+    metasploit: 900
+    
+  # Metasploit RPC configuration
+  metasploit:
+    host: "localhost"
+    port: 55553
+    username: "msf"
+    password: "msf"
+    ssl: false
+
+# Decision Engine Configuration
+decision_engine:
+  # MCDA weights (will be adapted automatically)
+  weights:
+    success_probability: 0.30
+    impact: 0.25
+    stealth: 0.20
+    speed: 0.15
+    resource_cost: 0.10
+    
+  # Monte Carlo simulation
+  monte_carlo:
+    iterations: 1000
+    confidence_level: 0.95
+    
+  # Risk thresholds
+  risk:
+    max_acceptable_risk: 0.7
+    high_risk_requires_approval: true
+    
+  # Pareto optimization
+  pareto:
+    enabled: true
+    max_solutions: 10
+
+# Orchestrator Configuration
+orchestrator:
+  # LangGraph checkpointing
+  checkpoint:
+    enabled: true
+    db_path: "./data/checkpoints.db"
+    
+  # Node execution timeout
+  node_timeout: 600
+  
+  # Maximum iterations per engagement
+  max_iterations: 100
+  
+  # Feedback loop settings
+  feedback:
+    learner_update_interval: 10
+    planner_replan_threshold: 0.3
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"  # json or console
+  
+  # File logging
+  file:
+    enabled: true
+    path: "./logs/redteam.log"
+    rotation: "10 MB"
+    retention: 7
+    
+  # Console logging
+  console:
+    enabled: true
+    rich_tracebacks: true
+
+# Engagement Defaults
+engagement:
+  # Default scope
+  default_scope: "internal"
+  
+  # Rules of engagement
+  rules:
+    allow_dos: false
+    allow_data_destruction: false
+    allow_persistence: false
+    max_depth: 5
+    
+  # Reporting
+  reporting:
+    auto_generate: true
+    formats: ["markdown", "json"]
+    include_recommendations: true
+
+# Security & Safety
+safety:
+  # Confirmation for dangerous actions
+  require_confirmation:
+    - destructive
+    - high_risk
+    - out_of_scope
+    
+  # Kill switches
+  kill_switches:
+    max_failed_actions: 10
+    max_time_hours: 24
+    whitelist_only: false

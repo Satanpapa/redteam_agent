@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: redteam-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Red Team Agent (main application)
+  redteam-agent:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile
+    container_name: redteam-main
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../data:/workspace/data
+      - ../logs:/workspace/logs
+      - ../config.yaml:/workspace/config.yaml
+    network_mode: "host"  # For direct access to targets
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
+
+  # Metasploit RPC (optional)
+  metasploit:
+    image: metasploitframework/metasploit-framework:latest
+    container_name: redteam-metasploit
+    ports:
+      - "55553:55553"
+    environment:
+      - DATABASE_URL=postgres://msf:msf@metasploit-db:5432/msf
+    depends_on:
+      - metasploit-db
+    restart: unless-stopped
+
+  # Metasploit Database
+  metasploit-db:
+    image: postgres:15-alpine
+    container_name: redteam-msfdb
+    environment:
+      - POSTGRES_USER=msf
+      - POSTGRES_PASSWORD=msf
+      - POSTGRES_DB=msf
+    volumes:
+      - msfdb-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
+  msfdb-data:
+
+networks:
+  default:
+    name: redteam-network
+    driver: bridge
